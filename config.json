@@ -1,0 +1,23 @@
+{
+  "source": "source",
+  "output": {
+    "styleguide": "build/styleguide",
+    "brickson": "build/www"
+  },
+  "plugins": {
+    "minify": {
+      "files": ["**/*.css"]
+    },
+    "autopref": {
+      "files": ["**/*.css"],
+      "config": {"browsers": ["last 2 versions", "Firefox <= 20", "ie 8", "ie 9", "> 1%"]}},
+    "imagemin": null,
+    "htmlmin": {
+      "files": ["**/*.html"]
+    },
+    "concat": {
+      "files": "**/*.js",
+      "config": "javascript/custom.js"
+    }
+  }
+}
