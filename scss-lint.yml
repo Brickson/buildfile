@@ -13,12 +13,12 @@ severity: warning
 linters:
   BangFormat:
     enabled: true
-    space_before_bang: true
+    space_before_bang: false
     space_after_bang: false
 
   BemDepth:
-    enabled: false
-    max_elements: 1
+    enabled: true
+    max_elements: 2
 
   BorderZero:
     enabled: true
@@ -28,13 +28,13 @@ linters:
     enabled: false
 
   ColorKeyword:
-    enabled: true
+    enabled: false
 
   ColorVariable:
-    enabled: true
+    enabled: false
 
   Comment:
-    enabled: true
+    enabled: false
     style: silent
 
   DebugStatement:
@@ -51,14 +51,14 @@ linters:
 
   ElsePlacement:
     enabled: true
-    style: same_line # or 'new_line'
+    style: new_line # or 'new_line'
 
   EmptyLineBetweenBlocks:
-    enabled: true
+    enabled: false
     ignore_single_line_blocks: true
 
   EmptyRule:
-    enabled: true
+    enabled: false
 
   ExtendDirective:
     enabled: false
@@ -114,7 +114,7 @@ linters:
     ignore_parent_selectors: false
 
   PlaceholderInExtend:
-    enabled: true
+    enabled: false
 
   PrivateNamingConvention:
     enabled: false
@@ -179,23 +179,23 @@ linters:
 
   SpaceAfterComma:
     enabled: true
-    style: one_space # or 'no_space', or 'at_least_one_space'
+    style: no_space # or 'no_space', or 'at_least_one_space'
 
   SpaceAfterComment:
-    enabled: false
-    style: one_space # or 'no_space', or 'at_least_one_space'
+    enabled: true
+    style: no_space # or 'no_space', or 'at_least_one_space'
     allow_empty_comments: true
 
   SpaceAfterPropertyColon:
     enabled: true
-    style: one_space # or 'no_space', or 'at_least_one_space', or 'aligned'
+    style: no_space # or 'no_space', or 'at_least_one_space', or 'aligned'
 
   SpaceAfterPropertyName:
     enabled: true
 
   SpaceAfterVariableColon:
     enabled: false
-    style: one_space # or 'no_space', 'at_least_one_space' or 'one_space_or_newline'
+    style: no_space # or 'no_space', 'at_least_one_space' or 'one_space_or_newline'
 
   SpaceAfterVariableName:
     enabled: true
