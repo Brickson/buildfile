@@ -10,23 +10,83 @@ var gulp = require('gulp'),
     imagemin = require('gulp-imagemin'),
     uglify = require('gulp-uglify'),
     autopref = require('gulp-autoprefixer'),
-    concat = require('gulp-concat');
+    concat = require('gulp-concat'),
+    rename = require('gulp-rename');
 
-gulp.task('concat', function(done) {
-    var config = global.config.plugins,
-        output = global.config.output[project];
+function loop(array, callback) {
+    var promises = [];
 
-    return gulp.src(output + '/' + config.files)
-        .pipe(concat(config.concat.config))
-        .pipe(uglify(config.uglify.config))
-        .pipe(gulp.dest(output));
+    for(var index in array) {
+        if(array.hasOwnProperty(index)) {
+            promises.push(new Promise(function(resolve, reject) {
+                var stream = callback(array[index]);
+                stream.on('end', function() {
+                    return resolve(true);
+                });
+                stream.on('error', function(err) {
+                    return reject(err);
+                });
+            }));
+        }
+    }
+
+    return Promise.all(promises);
+}
+
+gulp.task('concat', ['assets'], function(done) {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.concat,
+            output = global.config.output[project];
+
+        return gulp.src(output + '/' + config.files)
+            .pipe(concat(config.config))
+            .pipe(gulp.dest(output));
+    });
 });
 
-gulp.task('uglify', function(done) {
-    var config = global.config.plugins.uglify,
-        output = global.config.output[project];
+gulp.task('uglify', ['concat'] ,function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.uglify,
+            output = global.config.output[project];
 
-    return gulp.src(output + '/' + config.files)
-        .pipe(uglify(config))
-        .pipe(gulp.dest(output));
+        return gulp.src(output + '/' + config.files)
+            .pipe(uglify())
+            .pipe(gulp.dest(output + '/javascript'));
+    });
+});
+
+gulp.task('imagemin', ['assets'], function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.imagemin,
+            output = global.config.output[project],
+            folders = config.files.map(function(item) {
+                return output + '/' + item;
+            });
+
+        return gulp.src(folders)
+            .pipe(imagemin(config.config))
+            .pipe(gulp.dest(output));
+    });
+});
+
+gulp.task('autopref', ['build'], function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.autopref,
+            output = global.config.output[project];
+
+        return gulp.src(output + '/' + config.files)
+            .pipe(autopref(config.config))
+            .pipe(gulp.dest(output));
+    });
+});
+
+gulp.task('minify', ['build'], function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.minify,
+            output = global.config.output[project];
+
+        return gulp.src(output + '/' + config.files)
+            .pipe(minify(config.config))
+            .pipe(gulp.dest(output));
+    });
 });

@@ -46,6 +46,7 @@ var gulp        = require('gulp'),
 
 // Leak config variable to global scope.
 global.config = config;
+global.projects = projects;
 require(process.cwd() + '/gulp-plugins');
 
 /**
@@ -74,11 +75,18 @@ gulp.task('build', function() {
 
     for(var index in projects) {
         if(projects.hasOwnProperty(index)) {
-            // Leak variable
-            global.project = projects[index];
-
             stream.pipe(gulp.dest(config.output[projects[index]] + '/styles'));
             gulp.start(tasks);
+        }
+    }
+});
+
+gulp.task('move', function() {
+    // Move project specific files to their new home.
+    for(var index in projects) {
+        if(projects.hasOwnProperty(index)) {
+            gulp.src(config.source + '/projects/' + projects[index] + '/**/*')
+                .pipe(gulp.dest(config.output[projects[index]]));
         }
     }
 });
@@ -113,12 +121,12 @@ gulp.task('dev', function() {
     tasks = ['imagemin', 'autopref'];
 
     gulp.start(['build', 'styleguide', 'assets']);
-    gulp.watch(config.source + '/**/*', ['build', 'styleguide', 'assets']);
+    gulp.watch(config.source + '/**/*', ['move', 'build', 'styleguide', 'assets']);
 });
 
 gulp.task('test', function() {
-    tasks = tasks.concat(['concat']);
-    gulp.start(['build', 'styleguide', 'assets']);
+    tasks = tasks.concat(['concat', 'uglify', 'autopref']);
+    gulp.start(['move', 'build', 'styleguide', 'assets']);
 });
 
 gulp.task('production', function() {
