@@ -15,7 +15,7 @@ Run any of the build stages using:
 
 `gulp dev --your-project-source-name`
 
-Projects are defined inside a projects folder inside the source folder.
+Projects are defined inside a projects folder inside the source folder. Mulptiple projects may be called at once.
 
 **Folder structure, source folder**
 
@@ -48,10 +48,14 @@ Individual projects are moved into a build folder:
 |-- |-- your-project-build-name
 
 
-
-
 ## Install
-Move the files into the root of your project. If necessary, add your dependencies to the package.json file.
+Simply place the files into the root of your project. If necessary, add your dependencies to the package.json file.
 
 ## Config
-To start using the script, you need to update variables in the config.json.
+To start using the script, you need to update the uutput variable in the config.json:
+
+'"output": {
+    "styleguide": "build/styleguide",
+    "brickson": "build/www",
+    "teemr": "build/teemr"
+  },'
