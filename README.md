@@ -39,6 +39,10 @@ Individual projects are moved into a build folder:
 ```
 
 ## Install
+```
+sudo gem install scss-lint
+npm install
+```
 Simply place the files into the root of your project. If necessary, add your dependencies to the package.json file.
 
 ## Config
