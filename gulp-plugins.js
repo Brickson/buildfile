@@ -6,37 +6,65 @@
  */
 var gulp = require('gulp'),
     minify = require('gulp-clean-css'),
-    postcss = require('gulp-postcss'),
     imagemin = require('gulp-imagemin'),
     uglify = require('gulp-uglify'),
     autopref = require('gulp-autoprefixer'),
     concat = require('gulp-concat'),
-    rename = require('gulp-rename');
+    htmlmin = require('gulp-htmlmin'),
+    through2 = require('through2'),
+    scsslint = require('gulp-scss-lint');
 
-function loop(array, callback) {
+global.loop = function(array, callback) {
     var promises = [];
 
     for(var index in array) {
         if(array.hasOwnProperty(index)) {
-            promises.push(new Promise(function(resolve, reject) {
-                var stream = callback(array[index]);
-                stream.on('end', function() {
-                    return resolve(true);
-                });
-                stream.on('error', function(err) {
-                    return reject(err);
-                });
-            }));
+            var stream = callback(array[index]);
+
+            if(stream instanceof Promise) {
+                promises.push(stream)
+            } else {
+                promises.push(new Promise(function(resolve, reject) {
+                    stream.on('end', function() {
+                        return resolve(true);
+                    });
+                    stream.on('error', function(err) {
+                        return reject(err);
+                    });
+                }));
+            }
         }
     }
 
     return Promise.all(promises);
+};
+
+function filesArray(output, files) {
+    if(Array.isArray(files)) {
+        return files.map(function(item) {
+            return output + '/' + item;
+        });
+    }
+
+    return output + '/' + files;
+}
+
+function skipDocblock() {
+    return through2.obj(function(file, encoding, callback) {
+        var name = require('path').basename(file.path);
+
+        if(name.indexOf('docblock') >= 0) {
+            return callback(null);
+        }
+
+        return callback(null, file);
+    });
 }
 
 gulp.task('concat', ['assets'], function(done) {
     return loop(projects, function(project) {
         var config = global.config.plugins.concat,
-            output = global.config.output[project];
+            output = global.config.projects[project];
 
         return gulp.src(output + '/' + config.files)
             .pipe(concat(config.config))
@@ -47,9 +75,10 @@ gulp.task('concat', ['assets'], function(done) {
 gulp.task('uglify', ['concat'] ,function() {
     return loop(projects, function(project) {
         var config = global.config.plugins.uglify,
-            output = global.config.output[project];
+            output = global.config.projects[project];
 
         return gulp.src(output + '/' + config.files)
+            .pipe(skipDocblock())
             .pipe(uglify())
             .pipe(gulp.dest(output + '/javascript'));
     });
@@ -58,7 +87,7 @@ gulp.task('uglify', ['concat'] ,function() {
 gulp.task('imagemin', ['assets'], function() {
     return loop(projects, function(project) {
         var config = global.config.plugins.imagemin,
-            output = global.config.output[project],
+            output = global.config.projects[project],
             folders = config.files.map(function(item) {
                 return output + '/' + item;
             });
@@ -72,7 +101,7 @@ gulp.task('imagemin', ['assets'], function() {
 gulp.task('autopref', ['build'], function() {
     return loop(projects, function(project) {
         var config = global.config.plugins.autopref,
-            output = global.config.output[project];
+            output = global.config.projects[project];
 
         return gulp.src(output + '/' + config.files)
             .pipe(autopref(config.config))
@@ -80,13 +109,75 @@ gulp.task('autopref', ['build'], function() {
     });
 });
 
-gulp.task('minify', ['build'], function() {
+gulp.task('minify', ['build', 'assets'], function() {
     return loop(projects, function(project) {
         var config = global.config.plugins.minify,
-            output = global.config.output[project];
+            output = global.config.projects[project];
 
         return gulp.src(output + '/' + config.files)
+            .pipe(skipDocblock())
             .pipe(minify(config.config))
             .pipe(gulp.dest(output));
     });
+});
+
+gulp.task('htmlmin', ['move'], function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.htmlmin,
+            output = global.config.projects[project];
+
+        return gulp.src(output + '/' + config.files)
+            .pipe(skipDocblock())
+            .pipe(htmlmin(config.config))
+            .pipe(gulp.dest(output));
+    });
+});
+
+gulp.task('docblock', ['assets', 'minify', 'uglify', 'move'], function() {
+    return loop(projects, function(project) {
+        var config = global.config.plugins.docblock,
+            output = global.config.projects[project],
+            files = filesArray(output, config.files);
+
+        return gulp.src(files)
+            .pipe(through2.obj(function(file, encoding, callback) {
+                var extension = require('path').extname(file.path),
+                    path = process.cwd() + '/' + output + '/docblock' + extension,
+                    docblock = require('fs').existsSync(path),
+                    name = require('path').basename(file.path, extension);
+
+                if(!docblock || name === 'docblock') {
+                    return callback(null, file);
+                }
+
+                var buffer = Buffer.from(require('fs').readFileSync(path, 'utf8'));
+
+                file.contents = Buffer.concat([buffer, file.contents], buffer.length + file.contents.length);
+                return callback(null, file);
+            }))
+            .pipe(gulp.dest(output))
+            .on('end', function() {
+                for(var index in config.files) {
+                    if(config.files.hasOwnProperty(index)) {
+                        var extension = require('path').extname(config.files[index]),
+                            path = process.cwd() + '/' + output + '/docblock' + extension,
+                            docblock = require('fs').existsSync(path);
+
+                        if (docblock) {
+                            require('fs').unlinkSync(path);
+                        }
+                    }
+                }
+            });
+    });
+});
+
+gulp.task('scsslint', function() {
+    var config = global.config.plugins.scsslint;
+
+    return gulp.src(filesArray(global.config.source + '/sass', config.files))
+        .pipe(scsslint({
+            config: require('fs').existsSync(process.cwd() + '/' + config.config) ? process.cwd() + '/' + config.config : null,
+            maxBuffer: 1024 * 1024
+        }));
 });
