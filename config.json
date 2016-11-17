@@ -1,9 +1,26 @@
 {
   "source": "source",
-  "output": {
+  "assets": {
+    "brickson.nl": "build/www",
+    "blog": {
+      "app-icons": "build/www/app-icons",
+      "javascript": "build/www/user/themes/javascript",
+      "images": "build/www",
+      "fonts": "output_path"
+    }
+  },
+  "init": {
+    "brickson.nl": "getgrav/grav",
+    "showcase.brickson.nl": "laravel/laravel"
+  },
+  "projects": {
     "styleguide": "build/styleguide",
-    "brickson": "build/www",
-    "teemr": "build/teemr"
+    "brickson.nl": "build/www",
+    "teemr": "build/teemr",
+    "showcase.brickson.nl": "build/buffalo"
+  },
+  "sass": {
+    "brickson.nl": "build/www/user/themes/brickson/styles"
   },
   "plugins": {
     "minify": {
@@ -18,7 +35,7 @@
       "config": null
     },
     "htmlmin": {
-      "files": ["**/*.html"]
+      "files": "**/*.html"
     },
     "concat": {
       "files": "/assets/**/*.js",
@@ -27,6 +44,13 @@
     "uglify": {
       "files": "javascript/*.js",
       "config": "javascript/custom.min.js"
+    },
+    "docblock": {
+      "files": ["**/*.html", "**/*.css"]
+    },
+    "scsslint": {
+      "files": "**/*.scss",
+      "config": "scss-lint.yml"
     }
   }
 }
