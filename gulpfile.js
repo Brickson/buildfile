@@ -20,6 +20,8 @@ var gulp        = require('gulp'),
     server      = false,
     child_process = require('child_process'),
     fs          = require('fs'),
+    path        = require('path'),
+    through2    = require('through2'),
     projects    = process.argv.map(function(item) {
         if(item.indexOf('--') === -1) {
             return false;
@@ -70,6 +72,12 @@ gulp.task('assets', function() {
 
                     promises.push(new Promise(function(resolve, reject) {
                         gulp.src(config.source + '/assets/' + directory + '/**/*')
+                            .pipe(through2.obj(function(file, encoding, cb) {
+                                console.log(file.path);
+                                file.path = path.basename(file.path);
+
+                                return cb(file);
+                            }))
                             .pipe(gulp.dest(destination))
                             .on('end', function() {
                                 resolve(true);
@@ -179,14 +187,14 @@ gulp.task('init', function() {
 });
 
 gulp.task('dev', function() {
-    tasks = ['scsslint', 'autopref'];
+    tasks = ['autopref'];
 
-    gulp.start(['build', 'styleguide', 'assets']);
+    gulp.start(['move', 'build', 'styleguide', 'assets']);
     gulp.watch(config.source + '/**/*', ['move', 'build', 'styleguide', 'assets']);
 });
 
 gulp.task('test', function() {
-    tasks = tasks.concat(['imagemin', 'concat', 'uglify', 'autopref', 'minify']);
+    tasks = tasks.concat(['scsslint', 'imagemin', 'concat', 'uglify', 'autopref', 'minify']);
     gulp.start(['move', 'build', 'styleguide', 'assets']);
 });
 
