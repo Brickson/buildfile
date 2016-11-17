@@ -1,6 +1,6 @@
 # Gulp build file
 
-A generic gulp build file.
+A generic gulp build file for use in conjunction with (SCS5)[https://github.com/SC5/sc5-styleguide].
 
 ## Usage
 The script knows three build stages:
