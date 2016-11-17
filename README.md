@@ -9,7 +9,11 @@ The script knows three build stages:
 2. test
 3. production
 
-Run any of the build stages using:
+If your project requires any initialisation then first configure and run
+```
+gulp init --your-project-source-name
+```
+Then, run any of the build stages using:
 ```
 gulp dev --your-project-source-name
 ```
